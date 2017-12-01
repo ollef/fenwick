@@ -1,19 +1,19 @@
 module Fenwick where
 
-import Data.Semigroup
+import Data.Monoid
 
 data Tree a
   = Leaf a
   | Node (Tree a) !Int a (Tree a)
   deriving (Eq, Ord, Show)
 
-balanceNode :: Semigroup a => Tree a -> Int -> Tree a -> Int -> Tree a
+balanceNode :: Monoid a => Tree a -> Int -> Tree a -> Int -> Tree a
 balanceNode l llen r rlen
   | rlen > llen * 2 = rotateLeft l llen r
   | llen > rlen * 2 = rotateRight l llen r
   | otherwise = Node l llen (treeValue l <> treeValue r) r
 
-rotateLeft :: Semigroup a => Tree a -> Int -> Tree a -> Tree a
+rotateLeft :: Monoid a => Tree a -> Int -> Tree a -> Tree a
 rotateLeft l llen r@(Leaf a) = Node l llen (treeValue l <> a) r
 rotateLeft l llen (Node m mlen mr r) = Node (Node l llen lm m) lmlen (lval <> mr) r
   where
@@ -21,7 +21,7 @@ rotateLeft l llen (Node m mlen mr r) = Node (Node l llen lm m) lmlen (lval <> mr
     lval = treeValue l
     lm = lval <> treeValue m
 
-rotateRight :: Semigroup a => Tree a -> Int -> Tree a -> Tree a
+rotateRight :: Monoid a => Tree a -> Int -> Tree a -> Tree a
 rotateRight l@(Leaf a) llen r = Node l llen (a <> treeValue r) r
 rotateRight (Node l llen lm m) lmlen r = Node l llen (lm <> rval) (Node m mlen mr r)
   where
@@ -52,7 +52,7 @@ value (Fenwick t _) = treeValue t
 singleton :: a -> Fenwick a
 singleton a = Fenwick (Leaf a) 1
 
-insert :: Semigroup a => Int -> a -> Fenwick a -> Fenwick a
+insert :: Monoid a => Int -> a -> Fenwick a -> Fenwick a
 insert 0 element Empty = Fenwick (Leaf element) 1
 insert _ _ Empty = error "insert: index out of bounds"
 insert index element (Fenwick rootTree rootLen)
@@ -73,7 +73,7 @@ insert index element (Fenwick rootTree rootLen)
         rightLen = len - leftLen
         rightIndex = leftIndex + leftLen
 
-prefix :: (Semigroup a, Monoid a) => Int -> Fenwick a -> a
+prefix :: Monoid a => Int -> Fenwick a -> a
 prefix 0 Empty = mempty
 prefix _ Empty = error "prefix: index out of bounds"
 prefix index (Fenwick _ rootLen) | index > rootLen = error "prefix: index out of bounds"
